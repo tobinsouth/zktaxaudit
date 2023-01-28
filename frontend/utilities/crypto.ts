@@ -56,7 +56,16 @@ export const extractPartsFromSignature = (pSignature: Uint8Array, msg: Uint8Arra
 
 //extracts the signature and the json from a trusted API that signs requests
 export const extractSignatureInputs = (input: string): ExtractedJSONSignature => {
+    // expected keys:
+    const expectedKeys = ["signature","servicePubkey", "json"];
     const jsonSignature = JSON.parse(input);
+    // TODO: add in better error handling
+    for (var i = 0; i < expectedKeys.length; i++) {
+        if (!(expectedKeys[i] in jsonSignature)) {
+            console.log('missing key from JSON:', expectedKeys[i]);
+        }
+    }
+    // can these just be ASCII strings rather than JSON objects?
     const packedSignature = convertDictToBuffer(jsonSignature.signature);
     const servicePubkey = convertDictToBuffer(jsonSignature.servicePubkey);
     const newFormattedJSON = padJSONString(JSON.stringify(jsonSignature.json), MAX_JSON_LENGTH);

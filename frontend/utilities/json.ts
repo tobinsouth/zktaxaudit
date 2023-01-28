@@ -7,6 +7,7 @@ export function isJSON(jsonText: any) {
     }
 }
 
+// TODO: decide what ours is and modify
 export const MAX_JSON_LENGTH = 150;
 
 export function padJSONString(jsonString: string, desiredLength: number) {
@@ -124,12 +125,9 @@ function getValue(obj: Object, attrQuery: AttributeQuery) {
 }
 
 export const REQUIRED_FIELDS = [
-    ["name"],
-    ["crush", "name"],
-    ["crush", "basedScore"],
-    ["balance"],
-    ["height"],
-    ["superlative"]
+    ["fname"],
+    ["lname"],
+    ["form"],
 ];
 
 export function preprocessJson(
@@ -235,6 +233,8 @@ export function preprocessJson(
     return result;
 }
 
+// this add structure for redacting on top of the JSON
+// {"a":"b"} --> {"a": {"ticked":false,"value":"b"} }
 export const createJson = (parsedJsonPtr: any, parsedJsonDataStorePtr: any) => {
     for (var key in parsedJsonPtr) {
         if (["string", "number", "boolean"].includes(typeof parsedJsonPtr[key])) {
@@ -252,12 +252,13 @@ export const createJson = (parsedJsonPtr: any, parsedJsonDataStorePtr: any) => {
 };
 
 export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
-    
-
     // Ensure that all the required fields exist;
+    // TODO: update me.
     var missingFields = [];
     for (var fields of REQUIRED_FIELDS) {
-        if (getRecursiveKeyInDataStore(fields, JsonDataStore) === undefined) {
+        console.log('checking required fields', fields);
+        console.log(getRecursiveKeyInDataStore(fields, JsonDataStore));
+        if (!getRecursiveKeyInDataStore(fields, JsonDataStore)) {
             var fieldStr = "";
             for (var field of fields) {
                 fieldStr += field;
@@ -266,6 +267,7 @@ export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
             missingFields.push(fieldStr.slice(0, length - 1));
         }
     }
+    console.log('missingFields', missingFields)
     if (missingFields.length) {
         var errorStr = "Unable to generate proof! Missing the following fields: ";
         for (var field of missingFields) {
@@ -274,5 +276,4 @@ export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
         }
         throw new Error(`${errorStr}`);
     }
-
 }

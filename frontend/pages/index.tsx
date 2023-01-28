@@ -17,7 +17,7 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={styles.main}>
-            <div className={`${styles.coolBackground} w-full flex justify-center items-center py-2 strong`}>
+            <div>
                     <div className="w-full flex justify-center items-center">
                         <h1 className="text-xl">
                             zk Tax Auditing
@@ -25,11 +25,9 @@ export default function Home() {
                     </div>
                 </div>
                 <p className="mb-2">You can go to any of the follow three pages.</p>
-                <div className="flex flex2 flex-row ">
-                    <Link href="/signtaxform" passHref> <Button backgroundColor="black" color="white"> Sign Tax PDF </Button> </Link>
-
-                    <Link href="/prove"><button className="py-2 px-4 rounded-md hover:opacity-70 bg-black text-white">Create Redacted Audit & Proof</button></Link>
-                    
+                <div className="flex flex3 flex-row ">
+                    <Link href="/taxservice"> <Button backgroundColor="black" color="white"> Sign Tax PDF </Button> </Link>
+                    <Link href="/prove"><Button backgroundColor="black" color="white">Create Redacted Audit &amp; Proof</Button></Link>                   
                     <Link href="/verify"><Button backgroundColor="black" color="white">Verify Tax Proof</Button></Link>
                 </div>
             </div>
