@@ -7,15 +7,14 @@ const Container = styled.div`
     textarea,
     pre {
         width: 100%;
-        border: 0px;
+        border: 1px;
         padding: 10px 15px 10px 15px;
         min-height: 3.5em;
-        line-height: 1.5em;
+        // line-height: 1.5em;
         margin: 0;
         border-top-left-radius: 7px;
         border-top-right-radius: 7px;
         -webkit-appearance: none;
-        outline: none;
         background: transparent;
         word-wrap: break-word;
         white-space: pre-wrap;
@@ -26,10 +25,10 @@ const Container = styled.div`
         left: 0;
         bottom: 0;
         right: 0;
-        overflow: hidden;
-        resize: none;
+        overflow: scroll;
+        resize: vertical;
         position: absolute;
-        background: white;
+        background: WhiteSmoke;
         color: black;
         opacity: 0.8;
         border-radius: 8px;

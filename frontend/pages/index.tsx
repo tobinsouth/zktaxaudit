@@ -16,18 +16,18 @@ export default function Home() {
                 <meta name="description" content="A generic landing page" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className={styles.main}>
-            <div>
-                    <div className="w-full flex justify-center items-center">
-                        <h1 className="text-xl">
-                            zk Tax Auditing
-                        </h1>
-                    </div>
+            <div className={`w-full flex justify-center items-center py-2 strong`}>
+                <div className="w-full flex justify-center items-center">
+                    <h1 className="text-xl">
+                        zk Tax Auditing
+                    </h1>
                 </div>
+            </div>
+            <div className="flex flex-col justify-center items-center">
                 <p className="mb-2">You can go to any of the follow three pages.</p>
-                <div className="flex flex3 flex-row ">
-                    <Link href="/taxservice"> <Button backgroundColor="black" color="white"> Sign Tax PDF </Button> </Link>
-                    <Link href="/prove"><Button backgroundColor="black" color="white">Create Redacted Audit &amp; Proof</Button></Link>                   
+                <div className="flex space-x-4 flex-row ">
+                    <Link href="/taxservice" passHref> <Button backgroundColor="black" color="white"> Sign Tax PDF </Button> </Link>
+                    <Link href="/prove"><Button backgroundColor="black" color="white">Create Redacted Audit & Proof</Button></Link>
                     <Link href="/verify"><Button backgroundColor="black" color="white">Verify Tax Proof</Button></Link>
                 </div>
             </div>

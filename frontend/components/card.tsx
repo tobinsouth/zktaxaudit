@@ -5,7 +5,7 @@ export function Card(props: { dataStore: JSON_STORE; setKeyInDataStore: any; key
     // jsonText
 
     const handleCheckmarkCheck = (keys: string[]) => {
-        console.log("HELLLO");
+        console.log("Checked ticked form on card.");
         props.setKeyInDataStore(keys);
     };
     const [fetchJson, setFetchedJson] = useState<null | JSON_STORE | JSON_EL>(null);

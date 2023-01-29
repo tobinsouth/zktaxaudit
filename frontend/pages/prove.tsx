@@ -110,7 +110,7 @@ export default function RedactAndProve() {
                 inputReveal: revealedFields,
             };
 
-            console.log("HELLLL", finalInput);
+            console.log("THE FINAL COUNTDOWN (Input) (before passing to async worker)", finalInput);
 
             const worker = new Worker("./worker.js");
             worker.postMessage([finalInput, "./jsonFull_final.zkey"]);
