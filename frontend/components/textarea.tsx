@@ -48,8 +48,9 @@ interface Props {
 }
 
 export const Textarea = ({ value, onChangeHandler, placeholder }: Props) => {
+    // TODO: Make this look not terrible and have a better properties -> replace will full tailwind suggested
     return (
-        <Container className="w-full relative">
+        <Container className="w-full">
             <pre className="hidden">{value}</pre>
             <textarea
                 placeholder={placeholder}
