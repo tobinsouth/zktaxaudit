@@ -45,7 +45,6 @@ export default function TaxService() {
         try{
             console.log("Trying to parse JSON", json);
             const parsedJSON = JSON.parse(json);
-            
 
             const privKey = await localforage.getItem("zkattestorPrivKey");
             const publicKey = await localforage.getItem("zkattestorPubKey");
