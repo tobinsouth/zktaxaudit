@@ -206,7 +206,7 @@ export default function RedactAndProve() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Container className={styles.main}>
-                <div className={`${styles.coolBackground} w-full flex justify-center items-center py-2 strong`}>
+                <div className={"w-full flex justify-center items-center py-2 strong"}>
                     <div className="w-full flex justify-end items-center">
                         <div style={{ flex: "0.5" }}></div>
                         <h1 style={{ flex: "0.55" }} className="text-xl">
