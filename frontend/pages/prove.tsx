@@ -151,6 +151,9 @@ export default function RedactAndProve() {
     };
 
     useEffect(() => {
+        // This function checks that the browser session has a valid keypair stored in localforage or else generates one
+        // BUT, it doesn't actually do anything with the keypair ever. 
+        // TODO: This should be removed or repurposed to check that a pubkey produces a valid signature
         async function checkIsRegistered() {
             const maybePrivKey = await localforage.getItem("zkattestorPrivKey");
             const maybePubKey = await localforage.getItem("zkattestorPubKey");
