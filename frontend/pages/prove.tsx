@@ -60,9 +60,9 @@ export default function RedactAndProve() {
     const circuitInputs = useRef<ExtractedJSONSignature & { hash: string }>();
 
     const setRecursiveKeyInDataStore = (keys: string[]) => {
+        // TODO: This doesn't need to be recursive
         let newJson = { ...JsonDataStore };
         let ptr: JSON_EL | JSON_STORE = newJson;
-        //TODO: handle nesting
         for (var key of keys) {
             if (isJSONStore(ptr) && typeof key === "string" && ptr[key] && ptr[key]) {
                 ptr = ptr[key];
@@ -78,18 +78,22 @@ export default function RedactAndProve() {
 
     const generateProof = async () => {
         try {
-            if (!isJSON(jsonText) || !circuitInputs.current) {
+            if (!isJSON(jsonText) || !`circuitInputs`.current) {
                 toast.error("Invalid JSON");
                 return;
             }
             setIsLoading(1);
             checkJsonSchema(JsonDataStore);
             // hardCoded.jsonProgram.map(BigInt);
+
+            // This get the S, R8, hash, and pubKey values for EdDSA verification
             const sigParts = extractPartsFromSignature(
                 circuitInputs.current.packedSignature,
                 strHashToBuffer(circuitInputs.current.hash),
                 circuitInputs.current.servicePubkey
             );
+
+
 
             var revealedFields: number[] = [];
             for (var key of REQUIRED_FIELDS) {
@@ -138,64 +142,25 @@ export default function RedactAndProve() {
     };
 
     const generateJSON = async () => {
-        const extracted = extractSignatureInputs(jsonText);
+        // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
+        const extracted = extractSignatureInputs(jsonText); 
+
+        // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
         let newJsonDataStore: JSON_STORE = {};
         let parsedJson = extracted.jsonText;
-
         createJson(parsedJson, newJsonDataStore);
         setJsonDataStore(newJsonDataStore);
 
+        // We then hash the formatted JSON to send to the circuit
         let hash = await calculatePoseidon(toAscii(extracted.formattedJSON));
-
         circuitInputs.current = { ...extracted, hash };
-    };
 
-    useEffect(() => {
-        // This function checks that the browser session has a valid keypair stored in localforage or else generates one
-        // BUT, it doesn't actually do anything with the keypair ever. 
-        // TODO: This should be removed or repurposed to check that a pubkey produces a valid signature
-        async function checkIsRegistered() {
-            const maybePrivKey = await localforage.getItem("zkattestorPrivKey");
-            const maybePubKey = await localforage.getItem("zkattestorPubKey");
-            if (maybePrivKey && maybePubKey) {
-                setHasKeypair(true);
-            } else {
-                setIsLoading(0);
-                const privKey = ed.utils.randomPrivateKey();
-                const publicKey = await ed.getPublicKey(privKey);
-                await localforage.setItem("zkattestorPrivKey", privKey);
-                await localforage.setItem("zkattestorPubKey", publicKey);
-                setIsLoading(undefined);
-            }
-        }
-        checkIsRegistered();
-    }, []);
+        // console.log(circuitInputs.current)
+    };
 
     useEffect(() => {
         setConfetti(new JSConfetti());
     }, []);
-
-    const verifyProof = async () => {
-        try {
-            setIsLoading(2);
-            const resultVerified = await axios.post<VerifyPayload>("/api/verify", { ...proofArtifacts });
-            if (resultVerified.data.isValidProof) {
-                toast.success("Successfully verified proof!");
-                confetti
-                    .addConfetti({
-                        confettiRadius: 50,
-                        emojis: ["😘"],
-                    })
-                    .then((_: any) => confetti.clearCanvas());
-            } else {
-                toast.error("Failed to verify proof");
-            }
-            setIsLoading(undefined);
-        } catch (ex) {
-            setIsLoading(undefined);
-            toast.error("Failed to verify proof");
-        }
-    };
 
     console.log("loading: ", isLoading);
     return (
@@ -242,6 +207,7 @@ export default function RedactAndProve() {
                     <div className="py-2"></div>
                     <Card dataStore={JsonDataStore} setKeyInDataStore={setRecursiveKeyInDataStore} keys={[]}></Card>
                     <br />
+                    <div className="py-2"></div>
 
                     {Object.keys(JsonDataStore).length > 0 ? (
                         <Button backgroundColor="black" color="white" onClickHandler={generateProof}>
@@ -277,16 +243,6 @@ export default function RedactAndProve() {
                                 >
                                     View Public Info
                                 </a>
-                            </div>
-                            <div className="py-2"></div>
-                            <div className="w-full flex justify-center items-center">
-                                <Button backgroundColor="black" color="white" onClickHandler={verifyProof}>
-                                    {isLoading === 2 ? (
-                                        <ReactLoading type={"spin"} color={"white"} height={20} width={20} />
-                                    ) : (
-                                        "Verify Proof"
-                                    )}
-                                </Button>
                             </div>
                         </div>
                     ) : null}
