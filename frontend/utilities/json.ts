@@ -253,24 +253,11 @@ export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
     // TODO: update me.
     var missingFields = [];
     for (var fields of REQUIRED_FIELDS) {
-        console.log('checking required fields', fields);
-        console.log(getRecursiveKeyInDataStore(fields, JsonDataStore));
-        if (!getRecursiveKeyInDataStore(fields, JsonDataStore)) {
-            var fieldStr = "";
-            for (var field of fields) {
-                fieldStr += field;
-                fieldStr += '.';
-            }
-            missingFields.push(fieldStr.slice(0, length - 1));
+        // console.log('checking required fields', fields);
+        // console.log(getRecursiveKeyInDataStore(fields, JsonDataStore));
+        if (!JsonDataStore.hasOwnProperty(fields)) {
+            missingFields.push(fields);
         }
     }
     console.log('missingFields', missingFields)
-    if (missingFields.length) {
-        var errorStr = "Unable to generate proof! Missing the following fields: ";
-        for (var field of missingFields) {
-            errorStr += field;
-            errorStr += ", ";
-        }
-        throw new Error(`${errorStr}`);
-    }
 }
