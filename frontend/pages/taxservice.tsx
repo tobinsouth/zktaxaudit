@@ -27,7 +27,7 @@ export default function TaxService() {
     const [jsonOutput, setJsonOutput] = useState();
 
 
-    const checkJsonSchema = (json: object) => {
+    const fixJsonSchema = (json: object) => {
         // This function takes a JSON object and fixes it to be compatible with the JSON schema
         // We do this by making all the keys strings and removing any keys that are not in the schema
         // Schema = ["fname", "lname", "SSN", "10b", "24", "year", "form"]
@@ -68,11 +68,11 @@ export default function TaxService() {
 
     // A function to sign a JSON object with the private key
     async function signJson(json: string) {
-        // TODO: Use checkJsonSchema to validate the JSON input
+        // TODO: Better handle how JSON is validated/handled
         try{
             console.log("Trying to parse JSON", json);
             var parsedJSON = JSON.parse(json);
-            parsedJSON = checkJsonSchema(parsedJSON);
+            parsedJSON = fixJsonSchema(parsedJSON);
             json = JSON.stringify(parsedJSON);
             console.log("Parsed JSON");
 

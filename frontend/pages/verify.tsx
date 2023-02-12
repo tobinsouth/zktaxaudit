@@ -7,7 +7,6 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { ExtractedJSONSignature, VerifyPayload } from "../utilities/types";
 import {
-    checkJsonSchema,
     createJson,
     getRecursiveKeyInDataStore,
     isJSON,

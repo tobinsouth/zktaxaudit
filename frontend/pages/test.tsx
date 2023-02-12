@@ -9,7 +9,6 @@ import {
 } from "../utilities/crypto";
 
 import {
-    checkJsonSchema,
     createJson,
     getRecursiveKeyInDataStore,
     isJSON,

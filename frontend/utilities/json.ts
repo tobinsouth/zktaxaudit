@@ -248,16 +248,14 @@ export const createJson = (parsedJsonPtr: any, parsedJsonDataStorePtr: any) => {
     }
 };
 
-export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
+export const isValidJsonSchema = (JsonDataStore: JSON_STORE) => {
     // Ensure that all the required fields exist;
-    // TODO: update me.
     var missingFields = [];
-    for (var fields of REQUIRED_FIELDS) {
-        // console.log('checking required fields', fields);
-        // console.log(getRecursiveKeyInDataStore(fields, JsonDataStore));
-        if (!JsonDataStore.hasOwnProperty(fields)) {
-            missingFields.push(fields);
+    for (var field of REQUIRED_FIELDS) {
+        if (!JsonDataStore.hasOwnProperty(field)) {
+            console.log('JSON missing field: ', field);
+            return false;
         }
     }
-    console.log('missingFields', missingFields)
+    return true;
 }

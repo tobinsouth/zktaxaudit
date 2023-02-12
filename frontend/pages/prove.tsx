@@ -9,7 +9,7 @@ import { JsonViewer } from "@textea/json-viewer";
 
 import toast, { Toaster } from "react-hot-toast";
 import {
-    checkJsonSchema,
+    isValidJsonSchema,
     createJson,
     getRecursiveKeyInDataStore,
     isJSON,
@@ -97,8 +97,9 @@ export default function RedactAndProve() {
             }
 
             setIsLoading(1);
-            checkJsonSchema(JsonDataStore); // This is where we check so see if the JSON with redacting instructions is valid
-
+            if (!isValidJsonSchema(JsonDataStore)) {
+                alert('Invalid JSON');
+            }
             const paddedJSON = padJSONString(formattedJSON, MAX_JSON_LENGTH)
 
 
