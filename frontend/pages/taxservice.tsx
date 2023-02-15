@@ -2,6 +2,7 @@ import Head from "next/head";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import Link from 'next/link'
 import { Button } from "../components/button";
+import { Header, Background } from "../components/header";
 
 // Signing stuff with ed & storing keys in localforage 
 import * as ed from "@noble/ed25519";
@@ -122,8 +123,10 @@ export default function TaxService() {
                 <meta name="description" content="Sign your tax PDFs with a JSON" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
+            <Header />
+            <Background>
             {/* <div className="items-right"> <Link href="/">Home</Link> </div> */}
-            <div className="w-full flex justify-center items-center py-2 strong flex-col">
+            <div className="w-full flex justify-center items-center  flex-col">
                 <div>
                     <h1 className="text-center text-4xl m-2">Sign Tax Form</h1>
                 </div>
@@ -159,8 +162,9 @@ export default function TaxService() {
                         <JsonViewer value={jsonOutput} />
                     </>
                 ) : null}
-                <Toaster />
             </div>
+            </Background >
+            <Toaster />
         </>
     );
 }
