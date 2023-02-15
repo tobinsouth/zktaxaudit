@@ -3,6 +3,7 @@ import styles from "../styles/Home.module.css";
 import { Textarea } from "../components/textarea";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "../components/button";
+import { Background, Header } from "../components/header";
 import localforage from "localforage";
 import * as ed from "@noble/ed25519";
 import { JsonViewer } from "@textea/json-viewer";
@@ -139,34 +140,34 @@ export default function RedactAndProve() {
                 };
             console.log("Final Input to prover", finalInput);
 
-            // const worker = new Worker("./worker.js");
-            // worker.postMessage([finalInput, "./jsonFull_final.zkey"]);
+            const worker = new Worker("./worker.js");
+            worker.postMessage([finalInput, "./jsonFull_final.zkey"]);
 
-            // worker.onmessage = async function (e) {
-            //     const { proof, publicSignals, error } = e.data;
-            //     if (error) {
-            //         toast.error("Could not generate proof, invalid signature");
-            //         console.error("Proof error", error, error.message);
-            //     } else {
-            //         setProofArtifacts({ proof, publicSignals });
-            //         console.log("PROOF SUCCESSFULLY GENERATED: ", proof, publicSignals);
-            //         toast.success("Generated proof!");
-            //     }
-            //     setIsLoading(undefined);
-            // };
+            worker.onmessage = async function (e) {
+                const { proof, publicSignals, error } = e.data;
+                if (error) {
+                    toast.error("Could not generate proof, invalid signature");
+                    console.error("Proof error", error, error.message);
+                } else {
+                    setProofArtifacts({ proof, publicSignals });
+                    console.log("PROOF SUCCESSFULLY GENERATED: ", proof, publicSignals);
+                    toast.success("Generated proof!");
+                }
+                setIsLoading(undefined);
+            };
             
         } catch (e) {
             toast.error("Error generating proof");
             console.error(e);
         }
 
-        // TODO: This just overrides the proof and produces fake stuff
-        setIsLoading(1);
-        await new Promise(r => setTimeout(r, 2000));
-        const publicSignals = JSON.parse(`{"name":"Tobin","height":"6"}`)
-        const proof = JSON.parse(`{"pi_a":["18294190410516669312947734766168476834733778994004982243123202741391800389625","14634973487720588390542979589285014648526082368841806376872418331570542514454","1"],"pi_b":[["15725569425907313746582249233602641223623240475518950192334299785749380959785","3875975205535093540792760784480902608387614075717885689924469452182683061235"],["6233140625442003470491093169225427542223706586435163311162231687678429973867","7659535409373758863778921753613673563919334217374674318580259056294578860993"],["1","0"]],"pi_c":["8068633704987522987686630547402334866735747304157825731702093502368451040856","10203858953998258933534809613862773075746620743995854119058227060736081190827","1"],"protocol":"groth16","curve":"bn128"}`)
-        setProofArtifacts({ proof, publicSignals });
-        setIsLoading(undefined);
+        // // TODO: This just overrides the proof and produces fake stuff
+        // setIsLoading(1);
+        // await new Promise(r => setTimeout(r, 2000));
+        // const publicSignals = JSON.parse(`{"name":"Tobin","height":"6"}`)
+        // const proof = JSON.parse(`{"pi_a":["18294190410516669312947734766168476834733778994004982243123202741391800389625","14634973487720588390542979589285014648526082368841806376872418331570542514454","1"],"pi_b":[["15725569425907313746582249233602641223623240475518950192334299785749380959785","3875975205535093540792760784480902608387614075717885689924469452182683061235"],["6233140625442003470491093169225427542223706586435163311162231687678429973867","7659535409373758863778921753613673563919334217374674318580259056294578860993"],["1","0"]],"pi_c":["8068633704987522987686630547402334866735747304157825731702093502368451040856","10203858953998258933534809613862773075746620743995854119058227060736081190827","1"],"protocol":"groth16","curve":"bn128"}`)
+        // setProofArtifacts({ proof, publicSignals });
+        // setIsLoading(undefined);
     };
 
     const generateJSON = async () => {
@@ -199,21 +200,20 @@ export default function RedactAndProve() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Container className={styles.main}>
+            <Header/>
+            <Background>
+            <Container>
+                <div className="items-center justify-center text-center">
                 <div className={"w-full flex justify-center items-center py-2 strong"}>
-                    <div className="w-full flex justify-end items-center">
-                        <div style={{ flex: "0.5" }}></div>
-                        <h1 style={{ flex: "0.55" }} className="text-xl">
-                            zkJSON
-                        </h1>
-                        <Link href="/">Home</Link>
-                    </div>
+                    <h1 className="text-4xl">
+                        Redact & Prove Tax Statement
+                    </h1>
                 </div>
 
                 <p className="mb-2">Paste your JSON then select JSON elements to reveal in ZK-proof</p>
                 <div className="py-2"></div>
-                <div style={{ width: "800px" }} className="flex flex-col justify-center items-center">
-                    <Textarea
+                <div style={{ width: "800px" }} className="flex flex-col justify-center items-center align-middle text-center">
+                    <Textarea 
                         placeholder={"Paste the output of any one of our trusted APIs here (which signs the JSON)"}
                         value={jsonText}
                         onChangeHandler={(newVal: string) => {
@@ -271,7 +271,9 @@ export default function RedactAndProve() {
                     ) : null}
                 </div>
                 <Toaster />
+                </div>
             </Container>
+            </Background>
         </>
     );
 }

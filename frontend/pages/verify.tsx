@@ -21,6 +21,7 @@ import {
     toAscii,
 } from "../utilities/json";
 import { Button } from "../components/button";
+import { Header , Background } from "../components/header";
 
 
 export default function Verify() {
@@ -80,9 +81,9 @@ export default function Verify() {
                 <meta name="description" content="A place to verify the proofs" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Link href="/">Home</Link>
             <Toaster />
-
+            <Header />
+            <Background>
             <div className="w-full flex justify-center items-center">
                 <div className="flex flex-row align-top">
                 <div className="py-5 px-2 w-3/4">
@@ -120,6 +121,7 @@ export default function Verify() {
                     )}
                 </Button>
             </div>
+            </Background>
         </>
     );
 }
