@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import Link from 'next/link'
 import { Button } from "../components/button";
 
@@ -10,6 +10,8 @@ import {
     generateEddsaSignature
 } from "../utilities/crypto";
 import { EddsaSignature } from "../utilities/types";
+import { pdfToJSON } from "../utilities/f1040";
+
 
 import localforage from "localforage";
 
@@ -25,6 +27,21 @@ export default function TaxService() {
     const [jsonTextInput, setJsonTextInput] = useState<string>(`{"SSN": "000-00-0000", "fname": "DONALD J", "lname": "TRUMP", "state": "FL", "f_1": "393,229", "f_2a": "2,208", "f_2b": "10,626,179", "f_3a": "17,694","f_3b": "25,347","f_4a": "","f_4b": "","f_5a": "","f_5b": "86,532","f_6a": "","f_6b": "", "f_7": "", "f_8": "-15,825,345", "f_9": "-4,694,058", "f_10a": "101,699","f_10b": "","f_10c": "101,699","f_11": "-4,795,757","f_12": "915,171","f_13": "", "f_14": "915,171","f_15": "0","f_16": "0","f_17": "","f_18": "0","f_19": "","f_20": "","f_21": "","f_22": "0","f_23": "271,973","f_24": "271,973","f_25a": "83,915","f_25b": "","f_25c": "1,733","f_25d": "85,649","f_26": "13,635,520","f_27": "","f_28": "","f_29": "","f_30": "","f_31": "19,397","f_32": "19,397","f_33": "13,740,566","f_34": "13,468,593","f_35a": "","f_35b": "000000000","f_35c": "checking","f_35d": "00000000000000000","f_36": "8,000,000","f_37": "","year": "2020","form": "1040"}
     `);
     const [jsonOutput, setJsonOutput] = useState();
+
+    async function on1040PDF(e: ChangeEvent<HTMLInputElement>) {
+        /*
+        Handles the PDF File input. Expects form 1040 from 2020.
+        */
+        const fileInput = e.target;
+        if (!fileInput.files || fileInput.files.length === 0) {
+          console.error("No files?!");
+          return;
+        }
+        const file = fileInput.files[0];
+        const fBytes = await file.arrayBuffer();
+        const json1040 = await pdfToJSON(fBytes);
+        setJsonTextInput(JSON.stringify(json1040));
+    }
 
 
     const fixJsonSchema = (json: object) => {
@@ -109,19 +126,15 @@ export default function TaxService() {
             <div className="w-full flex justify-center items-center py-2 strong flex-col">
                 <div>
                     <h1 className="text-center text-4xl m-2">Sign Tax Form</h1>
-                    <br/>
-                    <p>This page will eventually take in a tax pdf and produce a signed JSON. For the time being we will take in manual values and produce a signed JSON output. </p>
-
-
                 </div>
                 <div className="flex flex-col justify-center items-center py-10 w-3/4 max-w-md">
                     <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                         <div className="flex flex-col items-center justify-center pt-2 pb-3">
                             <svg aria-hidden="true" className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <p className="mb-2 text-md text-gray-500 dark:text-gray-400">Upload 1040 Tax PDF</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="mb-2 text-md text-gray-500 dark:text-gray-400">Form 1040 (2020) PDF</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Click to insert or drag and drop</p>
                         </div>
-                        <input id="dropzone-file" type="file" className="hidden" />
+                        <input id="dropzone-file" name='f1040' type="file" onChange={on1040PDF} className="hidden" />
                     </label>
                 </div>
                 <div className="justify-center items-center">
