@@ -129,7 +129,7 @@ export default function RedactAndProve() {
             
             // Send everthing to circom
             const finalInput = {
-                    jsonProgram: formattedJSON,
+                    jsonProgram: paddedJSON,
                     redactMap: maskArray,
                     bufferCutoff: formattedJSON?.length,
                     pubServiceKey: signatureStuff.servicePubkey,
