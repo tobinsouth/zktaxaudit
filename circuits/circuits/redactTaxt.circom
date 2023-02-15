@@ -41,14 +41,9 @@ template TaxAudit (maxJSONsize) {
     eddsa.msg  <== hash2bits.out;
 
 
+    // TODO: Change to Pedersen hash
     // Verify json hashes to provided hash
-    // component poseidon = PoseidonLarge(bufferCutoff);
-    for (var i = 0; i < bufferCutoff; i++) {
-        poseidon.in[i] <== jsonProgram[i];
-    }
-    // poseidonHash <== poseidon.out;
-
-    poseidon = Poseidon(bufferCutoff);
+    component poseidon = PoseidonLarge(bufferCutoff);
     for (var i = 0; i < bufferCutoff; i++) {
         poseidon.in[i] <== jsonProgram[i];
     }
