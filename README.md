@@ -8,6 +8,7 @@
   * `frontend/utilities/json.ts`: a bunch of tools that parse the inputted JSON.
   * `frontend/utilities/crypto.ts`: a bunch of tools to allow us to extract signatures & pubkeys as well as using snark friends poseidon hashes.
   * `circuits/circuits/jsonFull.circom`: the main circom circuit that proves the redacted JSON is valid.
+  * `circuits/circuits/build.sh`: compiles the jsonFull.circom with snarkjs to produce `jsonFull_final.zkey`.
   * `frontend/public/worker.js`: this is a async worker that performs the snarkjs groth16 proof using the jsonFull circuit.
   
 * `frontend/pages/verify.tsx`: as yet incomplete page to verify the produced proofs

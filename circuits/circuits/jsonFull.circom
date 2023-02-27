@@ -359,7 +359,26 @@ component main { public [
   values,
   pubKey,
   hashJsonProgram
-] } = JsonFull(2, 6, [[6, 0], [7, 6], [7, 12], [9, 0], [8, 0], [13, 0]], [1, 2, 2, 1, 1, 1]);
+] } = JsonFull(
+  // 
+  2, //maximum nests with JSON. we use flat JSON. could change to 1
+  // number of keys that we want to reveal (not ticked in front end)
+  6, 
+  // key lengths
+  // tuple: length of first key, then length of second key
+  // initially had 
+  [
+    [6, 0], // ASCI length + 2 for the quotations on each side. they used first key "name": 4 + 2
+    [7, 0], 
+    [7, 0], 
+    [9, 0], 
+    [8, 0], 
+    [13, 0]
+  ], 
+  // key depths -- for our JSON it is flat -- all 1's
+  // TODO: since we use lfat JSON we could remove this and assume depth=1 everywhere
+  [1, 1, 1, 1, 1, 1]
+);
 
 /*
 INPUT = {

@@ -124,11 +124,8 @@ function getValue(obj: Object, attrQuery: AttributeQuery) {
     return attrQuery.reduce((acc: Record<string, any>, c: string) => acc[c], obj);
 }
 
-export const REQUIRED_FIELDS = [
-    ["fname"],
-    ["lname"],
-    ["form"],
-];
+export const REQUIRED_FIELDS = ["SSN", "fname", "lname", "address_state", "f_1", "f_2a", "f_2b", "f_3a", "f_3b", "f_4a", "f_4b", "f_5a", "f_5b", "f_6a", "f_6b", "f_7", "f_8", "f_9", "f_10a", "f_10b", "f_10c", "f_11", "f_12", "f_13", "f_14", "f_15", "f_16", "f_17", "f_18", "f_19", "f_20", "f_21", "f_22", "f_23", "f_24", "f_25a", "f_25b", "f_25c", "f_25d", "f_26", "f_27", "f_28", "f_29", "f_30", "f_31", "f_32", "f_33", "f_34", "f_35a", "f_35b", "f_36", "f_37", "year", "form"];
+
 
 export function preprocessJson(
     obj: Object,
@@ -251,29 +248,14 @@ export const createJson = (parsedJsonPtr: any, parsedJsonDataStorePtr: any) => {
     }
 };
 
-export const checkJsonSchema = (JsonDataStore: JSON_STORE) => {
+export const isValidJsonSchema = (JsonDataStore: JSON_STORE) => {
     // Ensure that all the required fields exist;
-    // TODO: update me.
     var missingFields = [];
-    for (var fields of REQUIRED_FIELDS) {
-        console.log('checking required fields', fields);
-        console.log(getRecursiveKeyInDataStore(fields, JsonDataStore));
-        if (!getRecursiveKeyInDataStore(fields, JsonDataStore)) {
-            var fieldStr = "";
-            for (var field of fields) {
-                fieldStr += field;
-                fieldStr += '.';
-            }
-            missingFields.push(fieldStr.slice(0, length - 1));
+    for (var field of REQUIRED_FIELDS) {
+        if (!JsonDataStore.hasOwnProperty(field)) {
+            console.log('JSON missing field: ', field);
+            return false;
         }
     }
-    console.log('missingFields', missingFields)
-    if (missingFields.length) {
-        var errorStr = "Unable to generate proof! Missing the following fields: ";
-        for (var field of missingFields) {
-            errorStr += field;
-            errorStr += ", ";
-        }
-        throw new Error(`${errorStr}`);
-    }
+    return true;
 }
