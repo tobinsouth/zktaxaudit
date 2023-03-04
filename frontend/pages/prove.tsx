@@ -82,6 +82,25 @@ export default function RedactAndProve() {
         setJsonDataStore(newJson);
     };
 
+    const generateJSON = async () => {
+        console.log("Generating JSON", jsonText)
+        // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
+        const extracted = extractSignatureInputs(jsonText); 
+
+        // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
+        let newJsonDataStore: JSON_STORE = {};
+        let parsedJson = extracted.jsonText;
+        createJson(parsedJson, newJsonDataStore);
+        setJsonDataStore(newJsonDataStore);
+
+        // We save this for generateProof
+        setFormattedJSON(extracted.formattedJSON);
+        const signatureParts = extractPartsFromSignature(extracted.packedSignature, extracted.servicePubkey);
+        setSignatureStuff(signatureParts);
+
+        console.log("Generated JSON")
+    };
+    
     const generateProof = async () => {
 
         console.log("Beginning generateProof")
@@ -171,24 +190,6 @@ export default function RedactAndProve() {
         // setIsLoading(undefined);
     };
 
-    const generateJSON = async () => {
-        console.log("Generating JSON", jsonText)
-        // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
-        const extracted = extractSignatureInputs(jsonText); 
-
-        // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
-        let newJsonDataStore: JSON_STORE = {};
-        let parsedJson = extracted.jsonText;
-        createJson(parsedJson, newJsonDataStore);
-        setJsonDataStore(newJsonDataStore);
-
-        // We save this for generateProof
-        setFormattedJSON(extracted.formattedJSON);
-        const signatureParts = extractPartsFromSignature(extracted.packedSignature, extracted.servicePubkey);
-        setSignatureStuff(signatureParts);
-
-        console.log("Generated JSON")
-    };
 
     useEffect(() => {
         setConfetti(new JSConfetti());
