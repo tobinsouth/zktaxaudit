@@ -1,4 +1,3 @@
-import { EddsaSignature, ExtractedJSONSignature } from "./types";
 import { buildPoseidon } from "circomlibjs";
 import { Ascii, MAX_JSON_LENGTH, padJSONString } from "./json";
 
@@ -43,13 +42,13 @@ const convertDictToBuffer = (dict: Record<string, number>): Uint8Array => {
     return new Uint8Array(arr);
 };
 
-export const extractPartsFromSignature = (pSignature: Uint8Array, pubKey: Uint8Array) => {
+export const extractPartsFromSignature = (pSignature: Uint8Array, servicePubkey: Uint8Array) => {
     const r8Bits = buffer2bits(pSignature.slice(0, 32));
     const sBits = buffer2bits(pSignature.slice(32, 64));
-    const aBits = buffer2bits(pubKey);
+    const aBits = buffer2bits(servicePubkey);
 
     return {
-        pubKey: aBits.map((el) => el.toString()),
+        servicePubkey: aBits.map((el) => el.toString()),
         R8: r8Bits.map((el) => el.toString()),
         S: sBits.map((el) => el.toString()),
     };
