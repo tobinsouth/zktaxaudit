@@ -167,11 +167,9 @@ export default function RedactAndProve() {
             const asciiJsonProgram = toAscii(paddedJSON);
             const hashJsonProgram = await calculatePedersen(asciiJsonProgram);
             const hashJsonProgramBits = buffer2bits(hashJsonProgram);
-            const hashJsonProgramHex = hashJsonProgram.toString("hex");
             console.log("ASCII Program", asciiJsonProgram);
             console.log("Hash of JSON", hashJsonProgram);
             console.log("Hash of JSON as bits", hashJsonProgramBits);
-            console.log("Hash of JSON as hex", hashJsonProgramHex);
 
             // Send everthing to circom
             const finalInput = {
