@@ -69,7 +69,7 @@ export const extractSignatureInputs = (input: string): ExtractedJSONSignature =>
     // can these just be ASCII strings rather than JSON objects?
     const packedSignature = convertDictToBuffer(jsonSignature.signature);
     const servicePubkey = convertDictToBuffer(jsonSignature.servicePubkey);
-    const newFormattedJSON = JSON.stringify(jsonSignature.json);;
+    const newFormattedJSON = JSON.stringify(jsonSignature.json);
     return { packedSignature, servicePubkey, jsonText: jsonSignature.json, formattedJSON: newFormattedJSON };
 };
 
