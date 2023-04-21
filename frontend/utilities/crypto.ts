@@ -7,6 +7,7 @@ const buildPedersenHash = require("circomlibjs").buildPedersenHash;
 
 let eddsa;
 let babyJub;
+let pedersenHash;
 
 function buffer2bits(buff: any) {
     const res = [];
@@ -22,17 +23,17 @@ function buffer2bits(buff: any) {
     return res;
 }
 
-export async function calculatePoseidon(json: Ascii[]): Promise<string> {
-    const poseidon = await buildPoseidon();
+// export async function calculatePoseidon(json: Ascii[]): Promise<string> {
+//     const poseidon = await buildPoseidon();
 
-    let poseidonRes = poseidon(json.slice(0, 16));
-    let i = 16;
-    while (i < json.length) {
-        poseidonRes = poseidon([poseidonRes].concat(json.slice(i, i + 15)));
-        i += 15;
-    }
-    return poseidon.F.toObject(poseidonRes).toString();
-}
+//     let poseidonRes = poseidon(json.slice(0, 16));
+//     let i = 16;
+//     while (i < json.length) {
+//         poseidonRes = poseidon([poseidonRes].concat(json.slice(i, i + 15)));
+//         i += 15;
+//     }
+//     return poseidon.F.toObject(poseidonRes).toString();
+// }
 
 const convertDictToBuffer = (dict: Record<string, number>): Uint8Array => {
     const arr = [];
@@ -68,22 +69,25 @@ export const extractSignatureInputs = (input: string): ExtractedJSONSignature =>
     // can these just be ASCII strings rather than JSON objects?
     const packedSignature = convertDictToBuffer(jsonSignature.signature);
     const servicePubkey = convertDictToBuffer(jsonSignature.servicePubkey);
-    const newFormattedJSON = JSON.stringify(jsonSignature.json);;
-    return { packedSignature, servicePubkey, jsonText: jsonSignature.json, formattedJSON: newFormattedJSON };
+    const jsonString = JSON.stringify(jsonSignature.json);
+    const jsonUint8 = new TextEncoder().encode(jsonString)
+
+    return { packedSignature, servicePubkey, jsonOriginal: jsonSignature.json, jsonString: jsonString, jsonUint8: jsonUint8 };
 };
 
-export const calculatePedersen = async (json: Ascii[]): Promise<string> => {
+export const calculatePedersen = async (msg: Uint8Array): Promise<BigInt> => {
+    // We change this to use a Uint8Array instead of a string and output just a number. Type changes can be handle in prove.tsx
     const pedersenHash = await buildPedersenHash();
-    const hash = pedersenHash.hash(json);
+    const hash = pedersenHash.hash(msg);
     return hash;
 }
-
 
 
 export const generateEddsaSignature = async (privateKey: Uint8Array, msg: Uint8Array) => {
     // TODO: I would love to understand more how this actually works with Pedersen
     eddsa = await buildEddsa();
     babyJub = await buildBabyjub();
+    pedersenHash = await buildPedersenHash();
 
     const pubKey = eddsa.prv2pub(privateKey);
 
@@ -91,9 +95,11 @@ export const generateEddsaSignature = async (privateKey: Uint8Array, msg: Uint8A
 
     const signature = eddsa.signPedersen(privateKey, msg);
 
+    const hash = pedersenHash.hash(msg);
+
     const pSignature = eddsa.packSignature(signature);
 
-    return {pSignature, msg, pPubKey};
+    return {pSignature, msg, pPubKey, hash};
 };
 
 export const strHashToBuffer = (hash: string) => {

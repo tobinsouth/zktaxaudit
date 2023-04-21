@@ -99,15 +99,19 @@ export default function TaxService() {
             // We use the Pedersen signing process from circomlib.js
             const jsonUint8 = new TextEncoder().encode(json); // We quickly convert to JSON to a Uint8Array to sign
             const newSignature = await generateEddsaSignature(privKey, jsonUint8)
+            // Convert Uint8 array newSignature.hash to an int
+            
             const newJsonOutput = {
                 "json": parsedJSON,
                 "signature": newSignature.pSignature,
-                "servicePubkey": newSignature.pPubKey
+                "servicePubkey": newSignature.pPubKey,
+                "hash": newSignature.hash // This will cause troubles in next section but is useful for debugging.
             }
             setJsonOutput(newJsonOutput)
 
             console.log("JSON signed");
-            
+            console.log("JSON Hash", newSignature.hash)
+        
             toast.success("JSON signed", { icon: "👍" });
 
         } catch (e) {

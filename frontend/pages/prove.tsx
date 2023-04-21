@@ -58,6 +58,7 @@ export default function RedactAndProve() {
     const [hasKeypair, setHasKeypair] = useState<boolean>(false);
     const [proofArtifacts, setProofArtifacts] = useState<ProofArtifacts | undefined>(undefined);
     const [stringifiedJSON, setStringifiedJSON] = useState<string>(""); // The JSON stringified to string
+    const [uint8JSON, setUint8JSON] = useState<Uint8Array>(new Uint8Array()); // The JSON stringified to Uint8Array
     const [JsonDataStore, setJsonDataStore] = useState<JSON_STORE>({}); // Used to determine which fields are ticked
     const [confetti, setConfetti] = useState<any>(undefined);
     const [signatureStuff, setSignatureStuff] = useState<EddsaSignature>();
@@ -89,14 +90,18 @@ export default function RedactAndProve() {
         // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
         const extracted = extractSignatureInputs(jsonDisplayText); 
 
+        console.log("Extracted", extracted)
+
         // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
         let newJsonDataStore: JSON_STORE = {};
-        let contentJsonWithoutSignature = extracted.jsonText;
+        let contentJsonWithoutSignature = extracted.jsonOriginal;
         createJson(contentJsonWithoutSignature, newJsonDataStore);
         setJsonDataStore(newJsonDataStore);
 
         // We save this for generateProof
-        setStringifiedJSON(extracted.stringifiedJSON);
+        setStringifiedJSON(extracted.jsonString);
+        setUint8JSON(extracted.jsonUint8);
+
         const signatureParts = extractPartsFromSignature(extracted.packedSignature, extracted.servicePubkey);
         setSignatureStuff(signatureParts);
 
@@ -124,9 +129,13 @@ export default function RedactAndProve() {
             if (!isValidJsonSchema(JsonDataStore)) {
                 toast.error('Invalid JSON');
             }
+            console.log("stringifiedJSON", stringifiedJSON)
             const paddedJSON = padJSONString(stringifiedJSON, MAX_JSON_LENGTH)
+            console.log("paddedJSON", paddedJSON)
 
 
+
+            
             // Find the redacted fields, and create the redaction mask array;
             console.log("JsonDataStore", JsonDataStore)
 
@@ -164,22 +173,28 @@ export default function RedactAndProve() {
             }
             console.log("Redacted JSON", redactedJSON);
 
-            const asciiJsonProgram = toAscii(paddedJSON);
-            const hashJsonProgram = await calculatePedersen(asciiJsonProgram);
-            const hashJsonProgramBits = buffer2bits(hashJsonProgram);
-            console.log("ASCII Program", asciiJsonProgram);
-            console.log("Hash of JSON", hashJsonProgram);
-            console.log("Hash of JSON as bits", hashJsonProgramBits);
+
+
+
+            console.log("jsonUint8", uint8JSON);
+            const paddedJsonUint8 = new TextEncoder().encode(paddedJSON)
+            console.log("paddedJsonUint8", paddedJsonUint8);
+
+            const hashJsonUint8 = await calculatePedersen(uint8JSON);
+            console.log("hashJsonUint8", hashJsonUint8);
+            const hashPaddedJsonUint8 = await calculatePedersen(paddedJsonUint8);
+            console.log("hashPaddedJsonUint8", hashPaddedJsonUint8);
+
 
             // Send everthing to circom
             const finalInput = {
-                    jsonProgram: asciiJsonProgram,
+                    jsonProgram: paddedJsonUint8,
                     redactMap: maskArray,
                     bufferCutoff: stringifiedJSON?.length,
                     pubServiceKey: signatureStuff.servicePubkey,
                     S: signatureStuff.S,
                     R8: signatureStuff.R8,
-                    hashJsonProgram: hashJsonProgramBits,
+                    hashJsonProgram: hashPaddedJsonUint8,
                 };
             console.log("Final Input to prover", finalInput);
 
