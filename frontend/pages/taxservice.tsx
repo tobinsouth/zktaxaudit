@@ -9,7 +9,8 @@ import * as ed from "@noble/ed25519";
 import {
     calculatePoseidon,
     generateEddsaSignature,
-    EddsaSignature
+    EddsaSignature,
+    uint8toBigIntStr
 } from "../utilities/crypto";
 import { pdfToJSON } from "../utilities/f1040";
 
@@ -105,12 +106,12 @@ export default function TaxService() {
                 "json": parsedJSON,
                 "signature": newSignature.pSignature,
                 "servicePubkey": newSignature.pPubKey,
-                "hash": newSignature.hash // This will cause troubles in next section but is useful for debugging.
+                "hash": uint8toBigIntStr(newSignature.hash) // This is useful for debugging.
             }
             setJsonOutput(newJsonOutput)
 
             console.log("JSON signed");
-            console.log("JSON Hash", newSignature.hash)
+            console.log("JSON Hash", uint8toBigIntStr(newSignature.hash))
         
             toast.success("JSON signed", { icon: "👍" });
 

@@ -23,6 +23,12 @@ function buffer2bits(buff: any) {
     return res;
 }
 
+export function uint8toBigIntStr(uint8: Uint8Array): string {
+    const bigIntHash = BigInt('0x' + [...uint8].map(x => x.toString(16).padStart(2, '0')).join(''));
+    const base10String = bigIntHash.toString(10);
+    return base10String;
+}
+
 // export async function calculatePoseidon(json: Ascii[]): Promise<string> {
 //     const poseidon = await buildPoseidon();
 

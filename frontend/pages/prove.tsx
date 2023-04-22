@@ -33,7 +33,8 @@ import {
     strHashToBuffer,
     calculatePedersen,
     EddsaSignature,
-    buffer2bits
+    buffer2bits,
+    uint8toBigIntStr
 } from "../utilities/crypto";
 import { Card } from "../components/card";
 import Link from "next/link";
@@ -181,9 +182,9 @@ export default function RedactAndProve() {
             console.log("paddedJsonUint8", paddedJsonUint8);
 
             const hashJsonUint8 = await calculatePedersen(uint8JSON);
-            console.log("hashJsonUint8", hashJsonUint8);
+            console.log("hashJsonUint8", hashJsonUint8, uint8toBigIntStr(hashJsonUint8));
             const hashPaddedJsonUint8 = await calculatePedersen(paddedJsonUint8);
-            console.log("hashPaddedJsonUint8", hashPaddedJsonUint8);
+            console.log("hashPaddedJsonUint8", hashPaddedJsonUint8, uint8toBigIntStr(hashPaddedJsonUint8));
 
 
             // Send everthing to circom
