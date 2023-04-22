@@ -39,11 +39,11 @@ template TaxAudit (maxJSONsize) {
     // component hash2bits = Num2Bits(254);
     // hash2bits.in <== hashJsonProgram;
 
-    component eddsa = EdDSAVerifier(maxJSONsize);
-    eddsa.A <== servicePubkey;
-    eddsa.R8 <== R8;
-    eddsa.S <== S;
-    eddsa.msg  <== jsonString; 
+    // component eddsa = EdDSAVerifier(maxJSONsize);
+    // eddsa.A <== servicePubkey;
+    // eddsa.R8 <== R8;
+    // eddsa.S <== S;
+    // eddsa.msg  <== jsonString; 
 
     // // Logic for doing redaction to create output
     for(var i=0; i<maxJSONsize; i++){
