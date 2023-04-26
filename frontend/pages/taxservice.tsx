@@ -8,9 +8,10 @@ import { Header, Background } from "../components/header";
 import * as ed from "@noble/ed25519";
 import {
     calculatePoseidon,
-    generateEddsaSignature
+    generateEddsaSignature,
+    EddsaSignature,
+    uint8toBigIntStr
 } from "../utilities/crypto";
-import { EddsaSignature } from "../utilities/types";
 import { pdfToJSON } from "../utilities/f1040";
 
 
@@ -25,7 +26,7 @@ import { REQUIRED_FIELDS, toAscii } from "../utilities/json";
 export default function TaxService() {
     const [isLoading, setIsLoading] = useState<number | undefined>(2);
     const [hasKeypair, setHasKeypair] = useState<boolean>(false);
-    const [jsonTextInput, setJsonTextInput] = useState<string>(`{"SSN": "000-00-0000", "fname": "DONALD J", "lname": "TRUMP", "state": "FL", "f_1": "393,229", "f_2a": "2,208", "f_2b": "10,626,179", "f_3a": "17,694","f_3b": "25,347","f_4a": "","f_4b": "","f_5a": "","f_5b": "86,532","f_6a": "","f_6b": "", "f_7": "", "f_8": "-15,825,345", "f_9": "-4,694,058", "f_10a": "101,699","f_10b": "","f_10c": "101,699","f_11": "-4,795,757","f_12": "915,171","f_13": "", "f_14": "915,171","f_15": "0","f_16": "0","f_17": "","f_18": "0","f_19": "","f_20": "","f_21": "","f_22": "0","f_23": "271,973","f_24": "271,973","f_25a": "83,915","f_25b": "","f_25c": "1,733","f_25d": "85,649","f_26": "13,635,520","f_27": "","f_28": "","f_29": "","f_30": "","f_31": "19,397","f_32": "19,397","f_33": "13,740,566","f_34": "13,468,593","f_35a": "","f_35b": "000000000","f_35c": "checking","f_35d": "00000000000000000","f_36": "8,000,000","f_37": "","year": "2020","form": "1040"}
+    const [jsonTextInput, setJsonTextInput] = useState<string>(`{"SSN": "000-00-0000", "fname": "DONALD J", "lname": "TRUMP", "address_state": "FL", "f_1": "393,229", "f_2a": "2,208", "f_2b": "10,626,179", "f_3a": "17,694","f_3b": "25,347","f_4a": "","f_4b": "","f_5a": "","f_5b": "86,532","f_6a": "","f_6b": "", "f_7": "", "f_8": "-15,825,345", "f_9": "-4,694,058", "f_10a": "101,699","f_10b": "","f_10c": "101,699","f_11": "-4,795,757","f_12": "915,171","f_13": "", "f_14": "915,171","f_15": "0","f_16": "0","f_17": "","f_18": "0","f_19": "","f_20": "","f_21": "","f_22": "0","f_23": "271,973","f_24": "271,973","f_25a": "83,915","f_25b": "","f_25c": "1,733","f_25d": "85,649","f_26": "13,635,520","f_27": "","f_28": "","f_29": "","f_30": "","f_31": "19,397","f_32": "19,397","f_33": "13,740,566","f_34": "13,468,593","f_35a": "","f_35b": "000000000","f_35c": "checking","f_35d": "00000000000000000","f_36": "8,000,000","f_37": "","year": "2020","form": "1040"}
     `);
     const [jsonOutput, setJsonOutput] = useState();
 
@@ -99,15 +100,19 @@ export default function TaxService() {
             // We use the Pedersen signing process from circomlib.js
             const jsonUint8 = new TextEncoder().encode(json); // We quickly convert to JSON to a Uint8Array to sign
             const newSignature = await generateEddsaSignature(privKey, jsonUint8)
+            // Convert Uint8 array newSignature.hash to an int
+            
             const newJsonOutput = {
                 "json": parsedJSON,
                 "signature": newSignature.pSignature,
-                "servicePubkey": newSignature.pPubKey
+                "servicePubkey": newSignature.pPubKey,
+                "hash": uint8toBigIntStr(newSignature.hash) // This is useful for debugging.
             }
             setJsonOutput(newJsonOutput)
 
             console.log("JSON signed");
-            
+            console.log("JSON Hash", uint8toBigIntStr(newSignature.hash))
+        
             toast.success("JSON signed", { icon: "👍" });
 
         } catch (e) {

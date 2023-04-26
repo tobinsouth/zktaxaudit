@@ -26,14 +26,15 @@ import {
 } from "../utilities/json";
 import styled from "styled-components";
 import axios from "axios";
-import { ExtractedJSONSignature, VerifyPayload } from "../utilities/types";
 import {
     calculatePoseidon,
     extractPartsFromSignature,
     extractSignatureInputs,
     strHashToBuffer,
+    calculatePedersen,
+    EddsaSignature,
     buffer2bits,
-    calculatePedersen
+    uint8toBigIntStr
 } from "../utilities/crypto";
 import { Card } from "../components/card";
 import Link from "next/link";
@@ -53,12 +54,13 @@ const Container = styled.main`
 `;
 
 export default function RedactAndProve() {
-    const [jsonText, setJsonText] = useState<string>("");
+    const [jsonDisplayText, setJsonDisplayText] = useState<string>(""); // The input JSON as text
     const [isLoading, setIsLoading] = useState<number | undefined>(2);
     const [hasKeypair, setHasKeypair] = useState<boolean>(false);
     const [proofArtifacts, setProofArtifacts] = useState<ProofArtifacts | undefined>(undefined);
-    const [formattedJSON, setFormattedJSON] = useState<string>();
-    const [JsonDataStore, setJsonDataStore] = useState<JSON_STORE>({});
+    const [stringifiedJSON, setStringifiedJSON] = useState<string>(""); // The JSON stringified to string
+    const [uint8JSON, setUint8JSON] = useState<Uint8Array>(new Uint8Array()); // The JSON stringified to Uint8Array
+    const [JsonDataStore, setJsonDataStore] = useState<JSON_STORE>({}); // Used to determine which fields are ticked
     const [confetti, setConfetti] = useState<any>(undefined);
     const [signatureStuff, setSignatureStuff] = useState<EddsaSignature>();
 
@@ -66,7 +68,7 @@ export default function RedactAndProve() {
     // const circuitInputs = useRef<ExtractedJSONSignature & { hash: string }>();
 
     const setRecursiveKeyInDataStore = (keys: string[]) => {
-        // TODO: This doesn't need to be recursive
+        // TODO: Unfinished
         let newJson = { ...JsonDataStore };
         let ptr: JSON_EL | JSON_STORE = newJson;
         for (var key of keys) {
@@ -82,15 +84,42 @@ export default function RedactAndProve() {
         setJsonDataStore(newJson);
     };
 
+    const generateJSON = async () => {
+        // Takes in the pasted text and produces the json to be shown in the US and the JSON_STORE object
+
+        console.log("Generating JSON", jsonDisplayText)
+        // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
+        const extracted = extractSignatureInputs(jsonDisplayText); 
+
+        console.log("Extracted", extracted)
+
+        // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
+        let newJsonDataStore: JSON_STORE = {};
+        let contentJsonWithoutSignature = extracted.jsonOriginal;
+        createJson(contentJsonWithoutSignature, newJsonDataStore);
+        setJsonDataStore(newJsonDataStore);
+
+        // We save this for generateProof
+        setStringifiedJSON(extracted.jsonString);
+        setUint8JSON(extracted.jsonUint8);
+
+        const signatureParts = extractPartsFromSignature(extracted.packedSignature, extracted.servicePubkey);
+        setSignatureStuff(signatureParts);
+
+        console.log("Generated JSON")
+    };
+
     const generateProof = async () => {
 
         console.log("Beginning generateProof")
         try{
-            if (!isJSON(jsonText) || !isJSON(formattedJSON)) {
-                // Checking everything is valid
-                toast.error("Invalid JSON");
-                return;
-            }
+            // This JSON check should be done in generateJSON
+            // if (!isJSON(jsonDisplayText) || !isJSON(stringifiedJSON)) {
+            //     // Checking everything is valid
+            //     toast.error("Invalid JSON");
+            //     console.log(jsonDisplayText)
+            //     return;
+            // }
 
             if (!signatureStuff) {
                 toast.error("Invalid signature");
@@ -99,15 +128,21 @@ export default function RedactAndProve() {
 
             setIsLoading(1);
             if (!isValidJsonSchema(JsonDataStore)) {
-                alert('Invalid JSON');
+                toast.error('Invalid JSON');
             }
-            const paddedJSON = padJSONString(formattedJSON, MAX_JSON_LENGTH)
+            console.log("stringifiedJSON", stringifiedJSON)
+            const paddedJSON = padJSONString(stringifiedJSON, MAX_JSON_LENGTH)
+            console.log("paddedJSON", paddedJSON)
 
 
+
+            
             // Find the redacted fields, and create the redaction mask array;
-            const maskArray = new Array(paddedJSON?.length).fill(0);
+            console.log("JsonDataStore", JsonDataStore)
+
+            const maskArray = new Array(paddedJSON?.length).fill(1);
             for (var key of REQUIRED_FIELDS) {
-                if (JsonDataStore[key]["ticked"]) {
+                if (!JsonDataStore[key]["ticked"]) {
                     let fakeJson = {};
                     fakeJson[key] = JsonDataStore[key]["value"];
                     let fakeJsonStr = JSON.stringify(fakeJson).slice(1,-1);
@@ -116,9 +151,13 @@ export default function RedactAndProve() {
                     if(!(redactStartIndex >0)){
                         console.log("Redaction error", fakeJsonStr, paddedJSON);
                     } else {
-                        let redactEndIndex = redactStartIndex + fakeJsonStr?.length - 2;
+                        let redactEndIndex = redactStartIndex + fakeJsonStr?.length;
                         for (var i = redactStartIndex; i < redactEndIndex; i++) {
-                            maskArray[i] = 1;
+                            maskArray[i] = 0;
+                        }
+                        // If the redacted field is not the last field in the JSON, we need to remove the comma
+                        if (paddedJSON[redactEndIndex] === ",") {
+                            maskArray[redactEndIndex] = 0;
                         }
                         console.log("Redacting", redactStartIndex, redactEndIndex)
                     }
@@ -126,18 +165,37 @@ export default function RedactAndProve() {
             }
             console.log("Mask Array", maskArray);
 
-            const hashJsonProgram = await calculatePedersen(toAscii(formattedJSON));
-            console.log("Hash of JSON", hashJsonProgram);
-            
+            // This code will take the maskArray and the stringifiedJSON and replace the string with a space anywhere the maskArray is 1
+            let redactedJSON = stringifiedJSON;
+            for (var i = 0; i < maskArray.length; i++) {
+                if (maskArray[i] === 1) {
+                    redactedJSON = redactedJSON?.slice(0, i) + " " + redactedJSON?.slice(i + 1);
+                }
+            }
+            console.log("Redacted JSON", redactedJSON);
+
+
+
+
+            console.log("jsonUint8", uint8JSON);
+            const paddedJsonUint8 = new TextEncoder().encode(paddedJSON)
+            console.log("paddedJsonUint8", paddedJsonUint8);
+
+            const hashJsonUint8 = await calculatePedersen(uint8JSON);
+            console.log("hashJsonUint8", hashJsonUint8, uint8toBigIntStr(hashJsonUint8));
+            const hashPaddedJsonUint8 = await calculatePedersen(paddedJsonUint8);
+            console.log("hashPaddedJsonUint8", hashPaddedJsonUint8, uint8toBigIntStr(hashPaddedJsonUint8));
+
+
             // Send everthing to circom
             const finalInput = {
-                    jsonProgram: paddedJSON,
+                    jsonProgram: paddedJsonUint8,
                     redactMap: maskArray,
-                    bufferCutoff: formattedJSON?.length,
+                    bufferCutoff: stringifiedJSON?.length,
                     pubServiceKey: signatureStuff.servicePubkey,
                     S: signatureStuff.S,
                     R8: signatureStuff.R8,
-                    hashJsonProgram: hashJsonProgram,
+                    hashJsonProgram: hashPaddedJsonUint8,
                 };
             console.log("Final Input to prover", finalInput);
 
@@ -171,24 +229,6 @@ export default function RedactAndProve() {
         // setIsLoading(undefined);
     };
 
-    const generateJSON = async () => {
-        console.log("Generating JSON", jsonText)
-        // extractSignatureInputs takes the JSON text and extracts the signature, pubkey, and formatted JSON
-        const extracted = extractSignatureInputs(jsonText); 
-
-        // This function takes the extracted JSON and creates a JSON_STORE object which will then be displayed in the UI
-        let newJsonDataStore: JSON_STORE = {};
-        let parsedJson = extracted.jsonText;
-        createJson(parsedJson, newJsonDataStore);
-        setJsonDataStore(newJsonDataStore);
-
-        // We save this for generateProof
-        setFormattedJSON(extracted.formattedJSON);
-        const signatureParts = extractPartsFromSignature(extracted.packedSignature, extracted.servicePubkey);
-        setSignatureStuff(signatureParts);
-
-        console.log("Generated JSON")
-    };
 
     useEffect(() => {
         setConfetti(new JSConfetti());
@@ -216,9 +256,9 @@ export default function RedactAndProve() {
                 <div style={{ width: "800px" }} className="flex flex-col justify-center items-center align-middle text-center">
                     <Textarea 
                         placeholder={"Paste the output of any one of our trusted APIs here (which signs the JSON)"}
-                        value={jsonText}
+                        value={jsonDisplayText}
                         onChangeHandler={(newVal: string) => {
-                            setJsonText(newVal);
+                            setJsonDisplayText(newVal);
                         }}
                     />
                     <div className="py-4"></div>

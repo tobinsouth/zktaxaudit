@@ -5,7 +5,6 @@ import JSConfetti from "js-confetti";
 import ReactLoading from "react-loading";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-import { ExtractedJSONSignature, VerifyPayload } from "../utilities/types";
 import {
     createJson,
     getRecursiveKeyInDataStore,

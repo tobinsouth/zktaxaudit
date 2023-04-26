@@ -1,4 +1,3 @@
-import { EddsaSignature, ExtractedJSONSignature } from "./types";
 import { buildPoseidon } from "circomlibjs";
 import { Ascii, MAX_JSON_LENGTH, padJSONString } from "./json";
 
@@ -8,6 +7,7 @@ const buildPedersenHash = require("circomlibjs").buildPedersenHash;
 
 let eddsa;
 let babyJub;
+let pedersenHash;
 
 function buffer2bits(buff: any) {
     const res = [];
@@ -23,17 +23,23 @@ function buffer2bits(buff: any) {
     return res;
 }
 
-export async function calculatePoseidon(json: Ascii[]): Promise<string> {
-    const poseidon = await buildPoseidon();
-
-    let poseidonRes = poseidon(json.slice(0, 16));
-    let i = 16;
-    while (i < json.length) {
-        poseidonRes = poseidon([poseidonRes].concat(json.slice(i, i + 15)));
-        i += 15;
-    }
-    return poseidon.F.toObject(poseidonRes).toString();
+export function uint8toBigIntStr(uint8: Uint8Array): string {
+    const bigIntHash = BigInt('0x' + [...uint8].map(x => x.toString(16).padStart(2, '0')).join(''));
+    const base10String = bigIntHash.toString(10);
+    return base10String;
 }
+
+// export async function calculatePoseidon(json: Ascii[]): Promise<string> {
+//     const poseidon = await buildPoseidon();
+
+//     let poseidonRes = poseidon(json.slice(0, 16));
+//     let i = 16;
+//     while (i < json.length) {
+//         poseidonRes = poseidon([poseidonRes].concat(json.slice(i, i + 15)));
+//         i += 15;
+//     }
+//     return poseidon.F.toObject(poseidonRes).toString();
+// }
 
 const convertDictToBuffer = (dict: Record<string, number>): Uint8Array => {
     const arr = [];
@@ -43,13 +49,13 @@ const convertDictToBuffer = (dict: Record<string, number>): Uint8Array => {
     return new Uint8Array(arr);
 };
 
-export const extractPartsFromSignature = (pSignature: Uint8Array, pubKey: Uint8Array) => {
+export const extractPartsFromSignature = (pSignature: Uint8Array, servicePubkey: Uint8Array) => {
     const r8Bits = buffer2bits(pSignature.slice(0, 32));
     const sBits = buffer2bits(pSignature.slice(32, 64));
-    const aBits = buffer2bits(pubKey);
+    const aBits = buffer2bits(servicePubkey);
 
     return {
-        pubKey: aBits.map((el) => el.toString()),
+        servicePubkey: aBits.map((el) => el.toString()),
         R8: r8Bits.map((el) => el.toString()),
         S: sBits.map((el) => el.toString()),
     };
@@ -69,22 +75,25 @@ export const extractSignatureInputs = (input: string): ExtractedJSONSignature =>
     // can these just be ASCII strings rather than JSON objects?
     const packedSignature = convertDictToBuffer(jsonSignature.signature);
     const servicePubkey = convertDictToBuffer(jsonSignature.servicePubkey);
-    const newFormattedJSON = JSON.stringify(jsonSignature.json);;
-    return { packedSignature, servicePubkey, jsonText: jsonSignature.json, formattedJSON: newFormattedJSON };
+    const jsonString = JSON.stringify(jsonSignature.json);
+    const jsonUint8 = new TextEncoder().encode(jsonString)
+
+    return { packedSignature, servicePubkey, jsonOriginal: jsonSignature.json, jsonString: jsonString, jsonUint8: jsonUint8 };
 };
 
-export const calculatePedersen = async (json: Ascii[]): Promise<string> => {
+export const calculatePedersen = async (msg: Uint8Array): Promise<BigInt> => {
+    // We change this to use a Uint8Array instead of a string and output just a number. Type changes can be handle in prove.tsx
     const pedersenHash = await buildPedersenHash();
-    const hash = pedersenHash.hash(json);
+    const hash = pedersenHash.hash(msg);
     return hash;
 }
-
 
 
 export const generateEddsaSignature = async (privateKey: Uint8Array, msg: Uint8Array) => {
     // TODO: I would love to understand more how this actually works with Pedersen
     eddsa = await buildEddsa();
     babyJub = await buildBabyjub();
+    pedersenHash = await buildPedersenHash();
 
     const pubKey = eddsa.prv2pub(privateKey);
 
@@ -92,9 +101,11 @@ export const generateEddsaSignature = async (privateKey: Uint8Array, msg: Uint8A
 
     const signature = eddsa.signPedersen(privateKey, msg);
 
+    const hash = pedersenHash.hash(msg);
+
     const pSignature = eddsa.packSignature(signature);
 
-    return {pSignature, msg, pPubKey};
+    return {pSignature, msg, pPubKey, hash};
 };
 
 export const strHashToBuffer = (hash: string) => {
